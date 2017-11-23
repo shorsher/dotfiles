@@ -41,7 +41,17 @@ set showmode
 set title
 set laststatus=2
 set noshowmode
+set autowrite " writes contents whenever you call :make, used in go-vim
 let g:airline_theme='neodark'
+
+"go-vim keybindings
+map <C-n> :cnext<CR>
+map <C-m> :cprevious<CR>
+nnoremap <leader>a :cclose<CR>
+let g:go_list_type = "quickfix"
+autocmd FileType go nmap <leader>b  <Plug>(go-build)
+autocmd FileType go nmap <leader>r  <Plug>(go-run)
+autocmd FileType go nmap <leader>t  <Plug>(go-test)
 
 set bs=2
 set expandtab
