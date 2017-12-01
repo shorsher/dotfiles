@@ -1,0 +1,18 @@
+// Place your settings in this file to overwrite the default settings
+{
+  "files.autoSave": "afterDelay",
+  "go.formatOnSave": false,
+  "editor.renderIndentGuides": false,
+  "editor.cursorStyle":"underline",
+  "editor.renderLineHighlight": "gutter",
+  "editor.minimap.enabled": false,
+  "editor.scrollBeyondLastLine": false,
+  "python.linting.enabled": false,
+  "editor.fontSize": 11,
+  "editor.tabSize": 2,
+  "editor.fontFamily": "Hack, Menlo, Monaco, 'Courier New', monospace",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.colorTheme": "One Monokai",
+  "vim.disableAnnoyingNeovimMessage": true,
+  "window.zoomLevel": 0
+}
