@@ -1,3 +1,4 @@
+-- always set leader first!
 vim.keymap.set("n", "<Space>", "<Nop>", { silent = true })
 vim.g.mapleader = " "
 
@@ -10,18 +11,6 @@ vim.g.mapleader = " "
 vim.opt.foldenable = false
 vim.opt.foldmethod = 'manual'
 vim.opt.foldlevelstart = 99
--- very basic "continue indent" mode (autoindent) is always on in neovim
--- could try smartindent/cindent, but meh.
--- vim.opt.cindent = true
--- XXX
--- vim.opt.cmdheight = 2
--- vim.opt.completeopt = 'menuone,noinsert,noselect'
--- not setting updatedtime because I use K to manually trigger hover effects
--- and lowering it also changes how frequently files are written to swap.
--- vim.opt.updatetime = 300
--- if key combos seem to be "lagging"
--- http://stackoverflow.com/questions/2158516/delay-before-o-opens-a-new-line
--- vim.opt.timeoutlen = 300
 -- keep more context on screen while scrolling
 vim.opt.scrolloff = 2
 -- never show me line breaks if they're not there
@@ -46,10 +35,10 @@ vim.opt.wildmode = 'list:longest'
 -- don't suggest files like there:
 vim.opt.wildignore = '.hg,.svn,*~,*.png,*.jpg,*.gif,*.min.js,*.swp,*.o,vendor,dist,_site'
 -- tabs: go big or go home
-vim.opt.shiftwidth = 8
-vim.opt.softtabstop = 8
-vim.opt.tabstop = 8
-vim.opt.expandtab = false
+vim.opt.shiftwidth = 2
+vim.opt.softtabstop = 2
+vim.opt.tabstop = 2
+vim.opt.expandtab = true
 -- case-insensitive search/replace
 vim.opt.ignorecase = true
 -- unless uppercase in search term
@@ -66,7 +55,7 @@ vim.opt.diffopt:append('iwhite')
 vim.opt.diffopt:append('algorithm:histogram')
 vim.opt.diffopt:append('indent-heuristic')
 --- except in Rust where the rule is 100 characters
-vim.api.nvim_create_autocmd('Filetype', { pattern = 'rust', command = 'set colorcolumn=100' })
+--vim.api.nvim_create_autocmd('Filetype', { pattern = 'rust', command = 'set colorcolumn=100' })
 -- show more hidden characters
 -- also, show tabs nicer
 vim.opt.listchars = 'tab:^ ,nbsp:¬,extends:»,precedes:«,trail:•'
@@ -76,6 +65,7 @@ vim.g.go_highlight_functions = 0
 vim.g.go_highlight_function_calls = 0
 vim.g.go_code_completion_enabled = 0
 vim.g.go_template_autocreate = 0
+vim.g.zenburn_disable_Label_underline = 1
 
 -------------------------------------------------------------------------------
 --
@@ -159,25 +149,6 @@ vim.keymap.set('n', '<leader>m', 'ct_')
 -- F1 is pretty close to Esc, so you probably meant Esc
 vim.keymap.set('', '<F1>', '<Esc>')
 vim.keymap.set('i', '<F1>', '<Esc>')
--- code companion
-vim.keymap.set(
-  { "n", "v" },
-  "<C-a>",
-  "<cmd>CodeCompanionActions<cr>",
-  { noremap = true, silent = true }
-)
-vim.keymap.set(
-  { "n" },
-  "<C-c>",
-  "<cmd>CodeCompanionChat Toggle<cr>",
-  { noremap = true, silent = true }
-)
-vim.keymap.set(
-  { "v" },
-  "<C-c>",
-  "<cmd>CodeCompanionChat Add<cr>",
-  { noremap = true, silent = true }
-)
 -------------------------------------------------------------------------------
 --
 -- autocommands
@@ -207,6 +178,16 @@ vim.api.nvim_create_autocmd(
 		end
 	}
 )
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "javascript", "javascriptreact", "typescriptreact", "typescript", "json" },
+  callback = function()
+    vim.bo.shiftwidth = 2
+    vim.bo.tabstop = 2
+    vim.bo.expandtab = true
+  end,
+})
+
 -- prevent accidental writes to buffers that shouldn't be edited
 vim.api.nvim_create_autocmd('BufRead', { pattern = '*.orig', command = 'set readonly' })
 vim.api.nvim_create_autocmd('BufRead', { pattern = '*.pacnew', command = 'set readonly' })
@@ -232,25 +213,8 @@ if not vim.loop.fs_stat(lazypath) then
 	})
 end
 vim.opt.rtp:prepend(lazypath)
--- then, setup!
 require("lazy").setup({
-	-- main color scheme
-	{
-		"wincent/base16-nvim",
-		lazy = false, -- load at start
-		priority = 1000, -- load first
-		config = function()
-			vim.cmd([[colorscheme gruvbox-dark-soft]])
-			vim.o.background = 'dark'
-			-- Make comments more prominent -- they are important.
-			local bools = vim.api.nvim_get_hl(0, { name = 'Boolean' })
-			vim.api.nvim_set_hl(0, 'Comment', bools)
-			-- Make it clearly visible which argument we're at.
-			local marked = vim.api.nvim_get_hl(0, { name = 'PMenu' })
-			vim.api.nvim_set_hl(0, 'LspSignatureActiveParameter', { fg = marked.fg, bg = marked.bg, ctermfg = marked.ctermfg, ctermbg = marked.ctermbg, bold = true })
-		end
-	},
-  	-- nice bar at the bottom
+  -- nice bar at the bottom
 	{
 		'itchyny/lightline.vim',
 		lazy = false, -- also load at start since it's UI
@@ -291,7 +255,7 @@ require("lazy").setup({
 			)
 		end
 	},
-        -- auto-cd to root of git project
+  -- auto-cd to root of git project
 	{
 		'notjedi/nvim-rooter.lua',
 		config = function()
@@ -327,20 +291,14 @@ require("lazy").setup({
 			end, { bang = true, nargs = '?', complete = "dir" })
 		end
 	},
-	  {
-	    'nvim-treesitter/nvim-treesitter',
-	    build = ':TSUpdate',
-	    config = function () 
-	      local configs = require("nvim-treesitter.configs")
-
-	      configs.setup({
-		  ensure_installed = { "rust", "lua", "vim", "vimdoc", "go", "zig", "javascript", "html" },
-		  sync_install = false,
-		  highlight = { enable = true },
-		  indent = { enable = true },  
-		})
-	    end
-	  },
+  {
+    'nvim-treesitter/nvim-treesitter',
+    build = ':TSUpdate',
+    lazy = false,
+    init = function()
+      require('nvim-treesitter').install { 'rust', 'javascript', 'go', 'typescript', 'solidity' }
+    end,
+  },
   -- LSP
 	{
 		'neovim/nvim-lspconfig',
@@ -349,12 +307,18 @@ require("lazy").setup({
 			local lspconfig = require('lspconfig')
 
 			-- Rust
-			lspconfig.rust_analyzer.setup {
+			vim.lsp.config('rust_analyzer', {
 				-- Server-specific settings. See `:help lspconfig-setup`
 				settings = {
 					["rust-analyzer"] = {
 						cargo = {
-							allFeatures = true,
+							features = "all",
+						},
+						checkOnSave = {
+							enable = true,
+						},
+						check = {
+							command = "clippy",
 						},
 						imports = {
 							group = {
@@ -368,34 +332,50 @@ require("lazy").setup({
 						},
 					},
 				},
-			}
-
-			-- zig
-			lspconfig.zls.setup {
-				settings = {
-					semantic_tokens = "partial",
-				}
-			}
-
+			})
+			vim.lsp.enable('rust_analyzer')
 			-- Go
-			util = require "lspconfig/util"
-			lspconfig.gopls.setup {
-				on_attach = on_attach,
-				cmd = {"gopls", "serve"},
-				filetypes = {"go", "gomod"},
-				root_dir = util.root_pattern("go.work", "go.mod", ".git"),
+			vim.lsp.enable('gopls')
+      -- zig
+			vim.lsp.config('zls', {})
+			vim.lsp.enable('zls')
+			--c++
+			vim.lsp.enable('clangd')
+			-- ts
+			vim.lsp.config('vtsls', {
+				filetypes = {
+					"javascript",
+					"javascriptreact",
+					"javascript.jsx",
+					"typescript",
+					"typescriptreact",
+					"typescript.tsx",
+				},
 				settings = {
-					gopls = {
-						analyses = {
-							unusedparams = true,
-						},
-						gofumpt = true,
+					vtsls = {
+						autoUseWorkspaceTsdk = true, -- Use workspace's TypeScript version if available
+						enableMoveToFileCodeAction = true,
 					},
-				},
-				init_options = {
-					usePlaceholders = true,
-				},
-			}
+					typescript = {
+						preferences = {
+							importModuleSpecifier = "relative",
+						},
+						format = {
+							enable = false
+						},
+					},
+					javascript = {
+						preferences = {
+							importModuleSpecifier = "relative",
+						},
+						format = {
+							enable = false
+						},
+					},
+					complete_function_calls = true,
+				}
+			})
+			vim.lsp.enable('vtsls')
 
 			-- Global mappings.
 			-- See `:help vim.diagnostic.*` for documentation on any of the below functions
@@ -435,73 +415,81 @@ require("lazy").setup({
 
 					local client = vim.lsp.get_client_by_id(ev.data.client_id)
 
-					-- When https://neovim.io/doc/user/lsp.html#lsp-inlay_hint stabilizes
-					-- *and* there's some way to make it only apply to the current line.
-					-- if client.server_capabilities.inlayHintProvider then
-					--     vim.lsp.inlay_hint(ev.buf, true)
-					-- end
+					-- TODO: there's some way to make it only apply to the current line.
+					 --if client.server_capabilities.inlayHintProvider then
+					  --   vim.lsp.inlay_hint.enable(true, { bufnr = ev.buf })
+					 --end
 
 					-- None of this semantics tokens business.
 					-- https://www.reddit.com/r/neovim/comments/143efmd/is_it_possible_to_disable_treesitter_completely/
 					client.server_capabilities.semanticTokensProvider = nil
+					-- format on save for Rust
+					if client.server_capabilities.documentFormattingProvider then
+						vim.api.nvim_create_autocmd("BufWritePre", {
+							group = vim.api.nvim_create_augroup("RustFormat", { clear = true }),
+							buffer = bufnr,
+							callback = function()
+								vim.lsp.buf.format({ bufnr = bufnr })
+							end,
+						})
+					end
 				end,
 			})
 		end
 	},
 	{
-  'saghen/blink.cmp',
-  -- optional: provides snippets for the snippet source
-  dependencies = { 'rafamadriz/friendly-snippets' },
+	  'saghen/blink.cmp',
+	  -- optional: provides snippets for the snippet source
+	  dependencies = { 'rafamadriz/friendly-snippets' },
 
-  -- use a release tag to download pre-built binaries
-  version = '1.*',
-  -- AND/OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
-  -- build = 'cargo build --release',
-  -- If you use nix, you can build from source using latest nightly rust with:
-  -- build = 'nix run .#build-plugin',
+	  -- use a release tag to download pre-built binaries
+	  version = '1.*',
+	  -- AND/OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
+	  -- build = 'cargo build --release',
+	  -- If you use nix, you can build from source using latest nightly rust with:
+	  -- build = 'nix run .#build-plugin',
 
-  ---@module 'blink.cmp'
-  ---@type blink.cmp.Config
-  opts = {
-    -- 'default' (recommended) for mappings similar to built-in completions (C-y to accept)
-    -- 'super-tab' for mappings similar to vscode (tab to accept)
-    -- 'enter' for enter to accept
-    -- 'none' for no mappings
-    --
-    -- All presets have the following mappings:
-    -- C-space: Open menu or open docs if already open
-    -- C-n/C-p or Up/Down: Select next/previous item
-    -- C-e: Hide menu
-    -- C-k: Toggle signature help (if signature.enabled = true)
-    --
-    -- See :h blink-cmp-config-keymap for defining your own keymap
-    keymap = { preset = 'enter' },
+	  ---@module 'blink.cmp'
+	  ---@type blink.cmp.Config
+	  opts = {
+	    -- 'default' (recommended) for mappings similar to built-in completions (C-y to accept)
+	    -- 'super-tab' for mappings similar to vscode (tab to accept)
+	    -- 'enter' for enter to accept
+	    -- 'none' for no mappings
+	    --
+	    -- All presets have the following mappings:
+	    -- C-space: Open menu or open docs if already open
+	    -- C-n/C-p or Up/Down: Select next/previous item
+	    -- C-e: Hide menu
+	    -- C-k: Toggle signature help (if signature.enabled = true)
+	    --
+	    -- See :h blink-cmp-config-keymap for defining your own keymap
+	    keymap = { preset = 'enter' },
 
-    appearance = {
-      -- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
-      -- Adjusts spacing to ensure icons are aligned
-      nerd_font_variant = 'mono'
-    },
+	    appearance = {
+	      -- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
+	      -- Adjusts spacing to ensure icons are aligned
+	      nerd_font_variant = 'mono'
+	    },
 
-    -- (Default) Only show the documentation popup when manually triggered
-    completion = { documentation = { auto_show = false } },
+	    -- (Default) Only show the documentation popup when manually triggered
+	    completion = { documentation = { auto_show = false } },
 
-    -- Default list of enabled providers defined so that you can extend it
-    -- elsewhere in your config, without redefining it, due to `opts_extend`
-    sources = {
-      default = { 'lsp', 'path', 'snippets', 'buffer' },
-    },
+	    -- Default list of enabled providers defined so that you can extend it
+	    -- elsewhere in your config, without redefining it, due to `opts_extend`
+	    sources = {
+	      default = { 'lsp', 'path', 'snippets', 'buffer' },
+	    },
 
-    -- (Default) Rust fuzzy matcher for typo resistance and significantly better performance
-    -- You may use a lua implementation instead by using `implementation = "lua"` or fallback to the lua implementation,
-    -- when the Rust fuzzy matcher is not available, by using `implementation = "prefer_rust"`
-    --
-    -- See the fuzzy documentation for more information
-    fuzzy = { implementation = "prefer_rust_with_warning" }
-  },
-  opts_extend = { "sources.default" }
-},
-
+	    -- (Default) Rust fuzzy matcher for typo resistance and significantly better performance
+	    -- You may use a lua implementation instead by using `implementation = "lua"` or fallback to the lua implementation,
+	    -- when the Rust fuzzy matcher is not available, by using `implementation = "prefer_rust"`
+	    --
+	    -- See the fuzzy documentation for more information
+	    fuzzy = { implementation = "prefer_rust_with_warning" }
+	  },
+	  opts_extend = { "sources.default" }
+	},
 	-- inline function signatures
 	{
 		"ray-x/lsp_signature.nvim",
@@ -536,29 +524,18 @@ require("lazy").setup({
 	},
 	-- go
 	{
+		'zig-vim',
+    url = "https://codeberg.org/ziglang/zig.vim",
+	},
+	{
 		'fatih/vim-go',
 	},
-	-- zig
-	{
-		'ziglang/zig.vim',
-	},
-	{
-		'github/copilot.vim',
-	},
-	{
-	  "olimorris/codecompanion.nvim",
-	  opts = {},
-	  dependencies = {
-	    "nvim-lua/plenary.nvim",
-	    "nvim-treesitter/nvim-treesitter",
-	  },
-	},
-        -- toml
+  -- toml
 	'cespare/vim-toml',
 	-- git
 	'tpope/vim-fugitive',
 	'mhinz/vim-signify',
-        -- markdown
+  -- markdown
 	{
 		'plasticboy/vim-markdown',
 		ft = { "markdown" },
@@ -577,4 +554,61 @@ require("lazy").setup({
 			vim.g.vim_markdown_auto_insert_bullets = 0
 		end
 	},
+	--colorscheme
+  {
+    'jnurmine/zenburn',
+    config = function()
+      vim.cmd.colorscheme('zenburn')
+    end
+  },
+  --{
+  --  'sainnhe/gruvbox-material',
+  --  lazy = false,
+  --  priority = 1000,
+  --  config = function()
+  --    -- Optionally configure and load the colorscheme
+  --    -- directly inside the plugin declaration.
+  --    vim.g.gruvbox_material_enable_italic = true
+  --    vim.cmd.colorscheme('gruvbox-material')
+  --  end
+  --},
+	--{
+	--	'sainnhe/everforest',
+	--	lazy = false,
+	--	priority = 1000,
+	--	config = function()
+	--		-- Optionally configure and load the colorscheme
+	--		-- directly inside the plugin declaration.
+	--		vim.g.everforest_enable_italic = true
+	--		vim.cmd.colorscheme('everforest')
+	--	end
+	--},
+	-- diff
+	'sindrets/diffview.nvim'
 })
+-- --- Custom commands -------------------------------------------------------{{{
+vim.cmd [=[
+" Convenient command to see the difference between the current buffer and the
+" file it was loaded from, thus the changes you made.
+" Only define it when not defined already.
+if !exists(":DiffOrig")
+  command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis
+      \ | wincmd p | diffthis
+endif
+
+function! ProfileStart()
+  profile start vim-profile.log
+  profile func *
+  profile file *
+endfunc
+command! -nargs=0 ProfileStart :call ProfileStart()
+
+function! ProfileStop()
+  profile pause
+  echo 'You must quit vim for profiling to be written to disk'
+endfunc
+command! -nargs=0 ProfileStop :call ProfileStop()
+
+command! FzfGitFiles :call Fzf_git_files()
+]=]
+
