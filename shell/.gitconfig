@@ -1,0 +1,39 @@
+[column]
+        ui = auto
+[branch]
+        sort = -committerdate
+[tag]
+        sort = version:refname
+[init]
+        defaultBranch = main
+[diff]
+        algorithm = histogram
+        colorMoved = plain
+        mnemonicPrefix = true
+        renames = true
+        tool = vimdiff
+[push]
+        default = simple
+        autoSetupRemote = true
+        followTags = true
+[fetch]
+        prune = true
+        pruneTags = true
+        all = true
+
+[help]
+        autocorrect = prompt
+[rerere]
+        enabled = true
+        autoupdate = true
+[core]
+        excludesfile = ~/.gitignore
+[core]
+        # fsmonitor = true
+        # untrackedCache = true
+[merge]
+        tool = nvim
+        # (just 'diff3' if git version < 2.3)
+        # conflictstyle = zdiff3
+[pull]
+        rebase = true
